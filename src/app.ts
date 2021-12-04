@@ -1,8 +1,8 @@
-import {State} from'./statePattern';
+import {State,utility} from'./module';
 
 class AwaitFirstCard implements State{
     flipFirstCard(): void {
-        console.log('shot')
+       console.log('aaa')
     }
     flipSecondCard(): void {
       console.log('')
@@ -108,18 +108,7 @@ class Controller{
     }
     
 }
-const utility = {
-    //洗還邏輯
-    getRandomNumberArray(count) {
-        const number = Array.from(Array(count).keys())
-        for (let index = number.length - 1; index > 0; index--) {
-            let randomIndex = Math.floor(Math.random() * (index + 1))
-                ;[number[index], number[randomIndex]] = [number[randomIndex], number[index]]
-        }
-        return number
-    },
-    
-}
+
 
 
 const view = new View();
@@ -127,5 +116,5 @@ const modal=new Modal();
 const controller = new Controller(view,modal);
 
 controller.initialize();
-const cards = document.querySelectorAll('.card');
+
 

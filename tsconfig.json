@@ -1,6 +1,6 @@
 {
     "files": [
-        "src/statePattern.ts",
+        "src/module.ts",
         "src/app.ts"
     ],
     "compilerOptions": {
