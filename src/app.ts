@@ -1,3 +1,15 @@
+import {State} from'./statePattern';
+
+class AwaitFirstCard implements State{
+    flipFirstCard(): void {
+        console.log('shot')
+    }
+    flipSecondCard(): void {
+      console.log('')
+    }
+
+}
+console.log(AwaitFirstCard);
 class View {
     
     displayCards(data):void {
@@ -14,7 +26,16 @@ class View {
 }
 class Modal{
 
- 
+    GAME_STATE = {
+        FirstCardAwaits: 'FirstCardAwaits',
+        SecondCardAwaits: 'SecendCardAwait',
+        CardMatchFailed: 'CardMatchFailed',
+        CardMatched: 'CardMatched',
+        GameFinished: 'GameFinished'
+    }
+    private current_state=this.GAME_STATE.FirstCardAwaits;
+    revealedCards=[];
+    score=0;
 
     async getCardElements(index):Promise<Object>{
         let number=this.translateNumber((index%13)+1);

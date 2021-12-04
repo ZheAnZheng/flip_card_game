@@ -1,9 +1,19 @@
 {
+    "files": [
+        "src/statePattern.ts",
+        "src/app.ts"
+    ],
     "compilerOptions": {
         "module": "commonjs",
+        "target": "es5",
         "noImplicitAny": false,
         "outDir": "src",
         "sourceMap": true,
-        "target": "es6"
+        "lib": [
+            "dom",
+            "es2015",
+            "es5",
+            "es6"
+        ]
     }
 }
