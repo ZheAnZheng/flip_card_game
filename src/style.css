@@ -1,1 +1,47 @@
 @import url(./reset.css);
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300&display=swap');
+html{
+    font-family: 'Nunito', sans-serif;
+}
+:root{
+    --red-color:#EA4D4D;
+    --black-color:#636060;
+}
+#cards{
+    display: flex;
+    flex-wrap: wrap;
+}
+.card{
+    display: flex;
+    flex-direction: column;
+
+    justify-content: space-around;
+    flex:7% 0 1;
+    height: 8vw;
+    background-color: rgb(240, 236, 231);
+    border: 1px solid rgb(189, 185, 185);
+    border-radius: 5px;
+    box-shadow: 0 0 5px 0 grey;
+}
+.card p{
+    font-size: 1rem;
+    font-weight: 700;
+    margin:0.5rem;
+    color:var(--red-color)
+}
+.card p:first-child{
+    align-self: flex-start;
+}
+.card svg{  
+  max-width: 30%;
+  align-self: center;
+}
+
+.card p:last-child{
+     align-self: flex-end;
+     transform: rotate(180deg);
+}
+.spade p,
+.club p{
+    color:var(--black-color);
+}
