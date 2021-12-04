@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 class View {
     displayCards(data) {
         document.querySelector('#cards').innerHTML += `
-        <div class="card ${data.name}">
+        <div data-set="${data.index}"  class="card back ${data.name}">
             <p>${data.number}</p>
             ${data.symbol}
             <p>${data.number}</p>
@@ -24,8 +24,7 @@ class Modal {
             const symbolData = yield this.getSymbols();
             const symbolName = this.translateSymbol(Math.floor(index / 13));
             const symbol = symbolData[symbolName].join('');
-            return { number, symbol, name: symbolName
-            };
+            return { number, symbol, name: symbolName, index };
         });
     }
     translateNumber(number) {
@@ -67,17 +66,38 @@ class Controller {
         this.view = view;
         this.modal = modal;
     }
-    display() {
-        return __awaiter(this, void 0, void 0, function* () {
-            for (let i = 0; i < 52; i++) {
-                const data = yield modal.getCardElements(i);
-                view.displayCards(data);
-            }
-        });
+    initialize() {
+        utility.getRandomNumberArray(52).map((index) => __awaiter(this, void 0, void 0, function* () {
+            const data = yield modal.getCardElements(index);
+            view.displayCards(data);
+            const cards = document.querySelectorAll('.card');
+            cards.forEach(card => {
+                card.addEventListener('click', this.flipCard);
+            });
+        }));
+    }
+    flipCard(e) {
+        const self = e.target;
+        if (self.classList.contains('back')) {
+            self.classList.remove('back');
+            self.classList.add('front');
+        }
     }
 }
+const utility = {
+    //洗還邏輯
+    getRandomNumberArray(count) {
+        const number = Array.from(Array(count).keys());
+        for (let index = number.length - 1; index > 0; index--) {
+            let randomIndex = Math.floor(Math.random() * (index + 1));
+            [number[index], number[randomIndex]] = [number[randomIndex], number[index]];
+        }
+        return number;
+    },
+};
 const view = new View();
 const modal = new Modal();
 const controller = new Controller(view, modal);
-controller.display();
+controller.initialize();
+const cards = document.querySelectorAll('.card');
 //# sourceMappingURL=app.js.map
