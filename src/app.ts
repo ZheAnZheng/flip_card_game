@@ -76,7 +76,7 @@ class MatchCardFailed implements State {
             view.displayActive(second);
             view.displayBack(first);
             view.displayBack(second);
-            revealedCards.splice(0,2);32
+            revealedCards.splice(0,2);
             currentState=firstCardAwaits;
         },1000)
         
