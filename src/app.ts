@@ -18,6 +18,7 @@ class FirstCardAwaits implements State {
         if (revealedCards.length < 1 && self.classList.contains('back') && score<260){
             
             view.displayFront(self);
+            view.displayActive(self)
             this.handler(e)
         }else{
             return;
@@ -49,6 +50,7 @@ class SecondCardAwaits implements State {
         const self = e.target;
         if (revealedCards.length < 2 && self.classList.contains('back')) {
             view.displayFront(self);
+            view.displayActive(self);
             
             this.handler(e);
 
@@ -65,19 +67,21 @@ class MatchCardFailed implements State {
         this.controller = controller;
     }
     //失敗時，停止兩秒蓋上牌
-    handler(e) {
+    handler() {
         const view=this.controller.getView();
         const first=document.querySelector(`.card[data-index="${revealedCards[0]}"]`);
         const second = document.querySelector(`.card[data-index="${revealedCards[1]}"]`);
         setTimeout(()=>{
+            view.displayActive(first);
+            view.displayActive(second);
             view.displayBack(first);
             view.displayBack(second);
-            revealedCards.splice(0,2);
+            revealedCards.splice(0,2);32
             currentState=firstCardAwaits;
-        },2000)
+        },1000)
         
     }
-    flipCard(e): void {
+    flipCard(): void {
         return;
     }
 
@@ -88,17 +92,24 @@ class MatchCard implements State {
         this.controller = controller
     }
     //加分 繼續開著
-    handler(e) {
+    handler() {
         const view =this.controller.getView();
+        const first = document.querySelector(`.card[data-index="${revealedCards[0]}"]`)
+        const second = document.querySelector(`.card[data-index="${revealedCards[1]}"]`)
         score+=10;
         revealedCards.splice(0,2);
+        view.displayScore();
+        view.displayActive(first);
+        view.displayActive(second);
+        view.displayDone(first);
+        view.displayDone(second);
         if(score<260){
             currentState=firstCardAwaits;
         }else{
             currentState=gameFinished;
         }
     }
-    flipCard(e): void {
+    flipCard(): void {
         return
     }
 
@@ -135,6 +146,20 @@ class View {
     displayBack(card){
         card.classList.remove('front');
         card.classList.add('back');
+    }
+    displayScore(){
+        document.querySelector('.score').innerHTML=`${score}`;
+    }
+    displayActive(card){
+        if(card.classList.contains('active')){
+            card.classList.remove('active');
+        }else{
+            
+            card.classList.add('active');
+        }   
+    }
+    displayDone(card){
+        card.classList.add('done');
     }
 
 }
@@ -215,10 +240,12 @@ class Controller {
             const data = await modal.getCardElements(index);
 
             view.displayCards(data);
+            view.displayScore();
             const cards = document.querySelectorAll('.card');
             cards.forEach(card => {
                 card.addEventListener('click', this.flipCard);
             })
+
         })
     }
 
