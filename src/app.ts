@@ -1,66 +1,183 @@
-import {State,utility} from'./module';
-
-class AwaitFirstCard implements State{
-    flipFirstCard(): void {
-       console.log('aaa')
+import { State, utility } from './module';
+//state pattern
+class FirstCardAwaits implements State {
+    controller;
+    constructor(controller) {
+        this.controller = controller;
+        
     }
-    flipSecondCard(): void {
-      console.log('')
+    handler(e) {
+        const num = e.target.dataset.index;
+        revealedCards.push(num);
+        currentState = secondCardAwaits;
+    }
+    flipCard(e): void {
+        const view=this.controller.getView();
+        const self = e.target;
+        
+        if (revealedCards.length < 1 && self.classList.contains('back') && score<260){
+            
+            view.displayFront(self);
+            this.handler(e)
+        }else{
+            return;
+        }
+        
     }
 
 }
-console.log(AwaitFirstCard);
-class View {
-    
-    displayCards(data):void {
+class SecondCardAwaits implements State {
+    controller;
+    constructor(controller) {
+        this.controller = controller;
+    }
+    handler(e) {
+        const num = e.target.dataset.index;
+        revealedCards.push(num);
+        const isMatched = this.controller.match(revealedCards);
+
+        if (isMatched && score < 260) {
+            currentState = matchCard;
+            currentState.handler(e);
+        } else {
+            currentState = matchCardFailed;
+            currentState.handler(e);
+        }
+    }
+    flipCard(e): void {
+        const view=controller.getView();
+        const self = e.target;
+        if (revealedCards.length < 2 && self.classList.contains('back')) {
+            view.displayFront(self);
+            
+            this.handler(e);
+
+        } else {
+            return;
+        }
+    }
+
+}
+class MatchCardFailed implements State {
+
+    controller;
+    constructor(controller) {
+        this.controller = controller;
+    }
+    //失敗時，停止兩秒蓋上牌
+    handler(e) {
+        const view=this.controller.getView();
+        const first=document.querySelector(`.card[data-index="${revealedCards[0]}"]`);
+        const second = document.querySelector(`.card[data-index="${revealedCards[1]}"]`);
+        setTimeout(()=>{
+            view.displayBack(first);
+            view.displayBack(second);
+            revealedCards.splice(0,2);
+            currentState=firstCardAwaits;
+        },2000)
         
+    }
+    flipCard(e): void {
+        return;
+    }
+
+}
+class MatchCard implements State {
+    controller;
+    constructor(controller) {
+        this.controller = controller
+    }
+    //加分 繼續開著
+    handler(e) {
+        const view =this.controller.getView();
+        score+=10;
+        revealedCards.splice(0,2);
+        if(score<260){
+            currentState=firstCardAwaits;
+        }else{
+            currentState=gameFinished;
+        }
+    }
+    flipCard(e): void {
+        return
+    }
+
+}
+class GameFinished implements State {
+    controller;
+    constructor(controller) {
+        this.controller = controller
+    }
+    handler() {
+        alert('you win');
+    }
+    flipCard(e): void {
+        return
+    }
+
+}
+
+class View {
+
+    displayCards(data): void {
+
         document.querySelector('#cards').innerHTML += `
-        <div data-set="${data.index}"  class="card back ${data.name}">
+        <div data-index="${data.index}"  class="card back ${data.name}">
             <p>${data.number}</p>
             ${data.symbol}
             <p>${data.number}</p>
         `
+    }
+    displayFront(card){
+        card.classList.remove('back');
+        card.classList.add('front');
+    }
+    displayBack(card){
+        card.classList.remove('front');
+        card.classList.add('back');
+    }
 
+}
+
+class Modal {
+
+    
+    checkPairs(cards):Boolean {
+        
+        const first = this.translateNumber(cards[0]);
+        const second = this.translateNumber(cards[1])
+
+        
+        return first ===second ?true :false;
     }
     
-}
-class Modal{
-
-    GAME_STATE = {
-        FirstCardAwaits: 'FirstCardAwaits',
-        SecondCardAwaits: 'SecendCardAwait',
-        CardMatchFailed: 'CardMatchFailed',
-        CardMatched: 'CardMatched',
-        GameFinished: 'GameFinished'
-    }
-    private current_state=this.GAME_STATE.FirstCardAwaits;
-    revealedCards=[];
-    score=0;
-
-    async getCardElements(index):Promise<Object>{
-        let number=this.translateNumber((index%13)+1);
-        const symbolData=await this.getSymbols();
+    async getCardElements(index): Promise<Object> {
+        let number = this.translateString((index % 13) + 1);
+        const symbolData = await this.getSymbols();
         const symbolName = this.translateSymbol(Math.floor(index / 13))
         const symbol = symbolData[symbolName].join('');
-        
-        return { number, symbol, name: symbolName,index}
+
+        return { number, symbol, name: symbolName, index }
     }
-    translateNumber(number):string|number{
-        switch(number){
-            case 1: 
+    translateNumber(number:string){
+        return Number(number)%13+1;
+    }
+    translateString(number): string | number {
+        switch (number) {
+            case 1:
                 return "A";
-            case 11 :
+            case 11:
                 return "J";
-            case 12 :
+            case 12:
                 return "Q";
-            case 13 :
+            case 13:
                 return "K";
-            default :
+            default:
                 return number;
         }
     }
-    translateSymbol(number:number):string{
-        switch(number){
+    translateSymbol(number: number): string {
+        switch (number) {
             case 0:
                 return 'heart';
             case 1:
@@ -69,52 +186,70 @@ class Modal{
                 return 'diamond';
             case 3:
                 return 'club'
-            
+
         }
     }
 
     async getSymbols() {
-        const response=await fetch('http://192.168.31.155:3000/card');
-        const responseData= await response.json();
+        const response = await fetch('http://192.168.31.155:3000/card');
+        const responseData = await response.json();
         return responseData
-        
-        
+
+
     }
 }
+class Controller {
+    view: View;
+    modal: Modal;
 
-class Controller{
-    view:View;
-    modal:Modal;
-    constructor(view:View ,modal:Modal){
-        this.view =view;
-        this.modal=modal;
+    constructor(view: View, modal: Modal, index) {
+        this.view = view;
+        this.modal = modal;
+        this.initialize(index);
+
     }
-    initialize(){
-        utility.getRandomNumberArray(52).map(async (index)=>{
+
+    initialize(index) {
+
+        utility.getRandomNumberArray(index).map(async (index) => {
             const data = await modal.getCardElements(index);
+
             view.displayCards(data);
             const cards = document.querySelectorAll('.card');
-            cards.forEach(card=>{
-                card.addEventListener('click',this.flipCard)
+            cards.forEach(card => {
+                card.addEventListener('click', this.flipCard);
             })
-        })  
+        })
     }
-    flipCard(e){
-        const self=e.target;
-        if (self.classList.contains('back')){
-           self.classList.remove('back');
-           self.classList.add('front');
-        }
-    }
+
     
+    match(cards :Array<number>):Boolean{
+        
+        return this.modal.checkPairs(cards);
+        
+    }
+
+    flipCard(e){
+        
+        currentState.flipCard(e);
+        
+       
+    }
+    getView(){
+        return this.view;
+    }
+
 }
 
-
-
 const view = new View();
-const modal=new Modal();
-const controller = new Controller(view,modal);
+const modal = new Modal();
+const controller = new Controller(view, modal, 52);
 
-controller.initialize();
-
-
+const firstCardAwaits: State = new FirstCardAwaits(controller);
+const secondCardAwaits: State = new SecondCardAwaits(controller);
+const matchCardFailed: State = new MatchCardFailed(controller);
+const matchCard: State = new MatchCard(controller)
+const gameFinished: State = new GameFinished(controller);
+const revealedCards = [];
+let score = 0;
+let currentState: State = firstCardAwaits;
