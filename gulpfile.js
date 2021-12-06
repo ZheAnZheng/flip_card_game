@@ -1,6 +1,5 @@
 var gulp = require("gulp");
 var ts = require("gulp-typescript");
-var tsProject = ts.createProject("tsconfig.json");
 var browserify = require("browserify");
 var source = require("vinyl-source-stream");
 var watchify = require("watchify");
@@ -22,22 +21,7 @@ var watchedBrowserify = watchify(
     packageCache: {},
   }).plugin(tsify)
 );
-gulp.task(
-  "copy",
-  gulp.series(gulp.parallel("copy-html"), function () {
-    return browserify({
-      basedir: ".",
-      debug: true,
-      entries: ["src/app.ts"],
-      cache: {},
-      packageCache: {},
-    })
-      .plugin(tsify)
-      .bundle()
-      .pipe(source("app.js"))
-      .pipe(gulp.dest("src"));
-  })
-);
+
 function bundle() {
   return watchedBrowserify
     .bundle()
